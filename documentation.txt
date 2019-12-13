@@ -1,0 +1,21 @@
+
+package.json:
+  Different scripts are required for Windows deployment.  For example:
+    "dev": "set DEBUG=server:debug & set NODE_ENV=development & nodemon src/index.js --exec babel-node"
+    instead of
+    "dev": "DEBUG=server:debug NODE_ENV=development nodemon src/index.js --exec babel-node"
+
+index.test.js:
+  var expect = require('chai').expect;
+  instead of
+  import {expect} from 'chai';
+
+Sources:
+1. https://medium.com/developer-circles-lusaka/how-to-write-an-express-js-server-using-test-driven-development-921dc55aec07
+	- Used cross-env (https://www.npmjs.com/package/cross-env) to set NODE_ENV in package.json
+
+2. https://socket.io/get-started/chat
+
+3. https://scotch.io/courses/getting-started-with-vuejs/processing-a-form-with-vue
+
+4. https://medium.com/js-dojo/build-a-real-time-chat-app-with-vuejs-socket-io-and-nodejs-714c8eefa54e

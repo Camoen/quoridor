@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Quoridor Chat Client</title>
+</head>
+<body>
+	<div id="app">
+		<ul v-for="message in message_history">
+			<span>{{message.message}}</span>
+		</ul>
+		<form @submit.prevent="processForm">
+			<input id="message_input" autocomplete="off" v-model="message" /><button>Send</button>
+		</form>
+	</div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script>
+		var socket = io();
+		const app = new Vue({
+			el: '#app',
+
+			// our data
+			data: {
+				message: "",
+				message_history: []
+		  	},
+
+		  	created()  {
+		  		socket.on('chat message', (msg) => {
+		  			this.message_history.push({message: msg});
+				});
+		  	},
+
+		  	methods: {
+		  		processForm() {
+					socket.emit('chat message', this.message);
+					this.message = "";
+		  		}
+		  	}
+		});
+	</script>
+<!-- 	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script>
+		$(function () {
+			var socket = io();
+			$('form').submit(function(e){
+				e.preventDefault(); // prevents page reloading
+				socket.emit('chat message', $('#message_input').val());
+				$('#message_input'.val(''));
+				return false;
+			});
+			socket.on('chat message', function(msg){
+				$('#message_history').append($('<li>').text(msg));
+			});
+		});
+
+		// var socket = io();
+		// io is a global which has been set up by socket io
+	</script> -->
+
+</body>

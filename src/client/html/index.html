@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<link rel="stylesheet" type="text/css" href="css/index.css">
 	<title>Quoridor Chat Client</title>
 </head>
 <body>
 	<div id="app">
-		<ul v-for="message in message_history">
-			<span>{{message.message}}</span>
-		</ul>
-		<form @submit.prevent="processForm">
-			<input id="message_input" autocomplete="off" v-model="message" /><button>Send</button>
-		</form>
+		<div v-if="logged_in" v-cloak>
+			<ul v-for="message in message_history">
+				<span>{{message.user}}: {{message.message}}</span>
+			</ul>
+			<form @submit.prevent="sendMessage">
+				<input id="message_input" autocomplete="off" v-model="message" /><button>Send</button>
+			</form>
+			<span v-show="userTyping">{{typingUser}} is typing.</span>
+		</div>
+
+		<div v-else v-cloak>
+			<form @submit.prevent="createUser">
+				<input id="message_input" autocomplete="off" v-model="username" placeholder="Enter Username" /><button>Join Chat</button>
+			</form>
+		</div>
 	</div>
 
 	<script src="/socket.io/socket.io.js"></script>
-	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 	<script>
 		var socket = io();
@@ -23,41 +32,52 @@
 
 			// our data
 			data: {
-				message: "",
-				message_history: []
+				message: null,
+				message_history: [],
+				username: null,
+				typingUser: null,
+				userTyping: false,
+				logged_in: false
 		  	},
 
 		  	created()  {
-		  		socket.on('chat message', (msg) => {
-		  			this.message_history.push({message: msg});
+		  		socket.on('chat-message', (msg) => {
+		  			this.message_history.push({
+		  				message: msg.message,
+		  				user: msg.user
+		  			});
+				});
+
+				socket.on('user-typing', (username) => {
+		  			this.typingUser = username;
+		  			this.userTyping = true;
+				});
+
+				socket.on('stop-typing', (username) => {
+		  			this.userTyping = false;
 				});
 		  	},
 
+		  	watch: {
+		  		message(value) {
+		  			value ? socket.emit('user-typing', this.username) : socket.emit('stop-typing', this.username)
+		  		}
+		  	},
+
 		  	methods: {
-		  		processForm() {
-					socket.emit('chat message', this.message);
+		  		sendMessage() {
+					socket.emit('chat-message', {
+						message: this.message,
+						user: this.username
+					});
 					this.message = "";
+		  		},
+
+		  		createUser() {
+		  			this.logged_in = true;
 		  		}
 		  	}
 		});
 	</script>
-<!-- 	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-	<script>
-		$(function () {
-			var socket = io();
-			$('form').submit(function(e){
-				e.preventDefault(); // prevents page reloading
-				socket.emit('chat message', $('#message_input').val());
-				$('#message_input'.val(''));
-				return false;
-			});
-			socket.on('chat message', function(msg){
-				$('#message_history').append($('<li>').text(msg));
-			});
-		});
-
-		// var socket = io();
-		// io is a global which has been set up by socket io
-	</script> -->
 
 </body>

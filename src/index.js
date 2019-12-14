@@ -33,18 +33,16 @@ socketio.on('connection', function(socket){
 	});
 });
 
-http.listen(config.get('port'), function(){
+// http.listen(config.get('port'), function(){
+// 	debug(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
+// 	console.log(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
+// });
+
+http.listen(8080, function(){
 	debug(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
 	console.log(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
 });
 
-
-// const app=express();
-
-// const listen = app.listen(config.get('port'),()=>{
-// 	debug(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
-//     console.log(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
-// })
 
 module.exports= app;
 module.exports.port=http.address().port;

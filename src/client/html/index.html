@@ -51,10 +51,10 @@
 				});
 
 				socket.on('user-typing', (username) => {
-					// if (username != this.username){
+					if (username != this.username){
 		  				this.typingUser = username;
 		  				this.someoneIsTyping = true;
-		  			// }
+		  			}
 				});
 
 				socket.on('stop-typing', (username) => {

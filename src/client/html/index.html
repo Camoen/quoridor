@@ -58,7 +58,9 @@
 				});
 
 				socket.on('stop-typing', (username) => {
-		  			this.someoneIsTyping = false;
+					if (username != this.username){
+		  				this.someoneIsTyping = false;
+		  			}
 				});
 		  	},
 

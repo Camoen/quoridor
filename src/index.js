@@ -33,16 +33,10 @@ socketio.on('connection', function(socket){
 	});
 });
 
-// http.listen(config.get('port'), function(){
-// 	debug(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
-// 	console.log(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
-// });
-
-http.listen(8080, function(){
+http.listen((process.env.PORT || config.get('port')), function(){
 	debug(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
 	console.log(`server is running on port ${config.get('port')} and in ${config.get('name')} mode`);
 });
-
 
 module.exports= app;
 module.exports.port=http.address().port;

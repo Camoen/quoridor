@@ -11,9 +11,9 @@
 				<span>{{message.user}}: {{message.message}}</span>
 			</ul>
 			<form @submit.prevent="sendMessage">
-				<input id="message_input" autocomplete="off" v-model="message" /><button>Send</button>
+				<input id="message_input" autocomplete="off" v-model="message" v-on:keyup="setUserTyping" v-on:keyup.Enter="clearUserTyping" /><button>Send</button>
 			</form>
-			<span v-show="userTyping">{{typingUser}} is typing.</span>
+			<span v-show="someoneIsTyping">{{typingUser}} is typing.</span>
 		</div>
 
 		<div v-else v-cloak>
@@ -36,8 +36,10 @@
 				message_history: [],
 				username: null,
 				typingUser: null,
-				userTyping: false,
-				logged_in: false
+				someoneIsTyping: false,
+				logged_in: false,
+				userIsTyping: false,
+				timeout: undefined
 		  	},
 
 		  	created()  {
@@ -49,32 +51,54 @@
 				});
 
 				socket.on('user-typing', (username) => {
-		  			this.typingUser = username;
-		  			this.userTyping = true;
+					// if (username != this.username){
+		  				this.typingUser = username;
+		  				this.someoneIsTyping = true;
+		  			// }
 				});
 
 				socket.on('stop-typing', (username) => {
-		  			this.userTyping = false;
+		  			this.someoneIsTyping = false;
 				});
 		  	},
 
-		  	watch: {
-		  		message(value) {
-		  			value ? socket.emit('user-typing', this.username) : socket.emit('stop-typing', this.username)
-		  		}
-		  	},
+		  	// watch: {
+		  	// 	message(value) {
+		  	// 		value ? socket.emit('user-typing', this.username) : socket.emit('stop-typing', this.username)
+		  	// 	}
+		  	// },
 
 		  	methods: {
+		  		createUser() {
+		  			this.logged_in = true;
+		  		},
+
 		  		sendMessage() {
 					socket.emit('chat-message', {
 						message: this.message,
 						user: this.username
 					});
 					this.message = "";
+					this.clearUserTyping();
 		  		},
 
-		  		createUser() {
-		  			this.logged_in = true;
+		  		setUserTyping() {
+		  			if (!this.userIsTyping){
+		  				this.userIsTyping = true;
+		  				console.log("userisTyping is true");
+		  				socket.emit('user-typing', this.username);
+		  				this.timeout = setTimeout(this.clearUserTyping, 4000);
+		  			} else {
+		  				console.log("userisTyping is still true");
+						clearTimeout(this.timeout);
+		  				this.timeout = setTimeout(this.clearUserTyping, 4000);
+		  			}
+		  		},
+
+		  		clearUserTyping() {
+		  			this.userIsTyping = false;
+		  			console.log("userisTyping is false");
+		  			socket.emit('stop-typing', this.username);
 		  		}
 		  	}
 		});

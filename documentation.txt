@@ -19,3 +19,5 @@ Sources:
 3. https://scotch.io/courses/getting-started-with-vuejs/processing-a-form-with-vue
 
 4. https://medium.com/js-dojo/build-a-real-time-chat-app-with-vuejs-socket-io-and-nodejs-714c8eefa54e
+
+5. http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/

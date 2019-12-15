@@ -14,6 +14,14 @@
 				<input id="message_input" autocomplete="off" v-model="message" v-on:keyup="setUserTyping" v-on:keyup.Enter="clearUserTyping" /><button>Send</button>
 			</form>
 			<span v-show="someoneIsTyping">{{typingUser}} is typing.</span>
+
+			<div>
+				<h3>Online Users:</h3>
+				<ul v-for="user in userList">
+					<span>{{user}}</span>
+				</ul>
+			</div>
+
 		</div>
 
 		<div v-else v-cloak>
@@ -21,6 +29,8 @@
 				<input id="message_input" autocomplete="off" v-model="username" placeholder="Enter Username" /><button>Join Chat</button>
 			</form>
 		</div>
+
+		
 	</div>
 
 	<script src="/socket.io/socket.io.js"></script>
@@ -39,6 +49,7 @@
 				someoneIsTyping: false,
 				logged_in: false,
 				userIsTyping: false,
+				userList: [],
 				timeout: undefined
 		  	},
 
@@ -48,6 +59,10 @@
 		  				message: msg.message,
 		  				user: msg.user
 		  			});
+				});
+
+				socket.on('update-user-list', (usernames) => {
+					this.userList = usernames;
 				});
 
 				socket.on('user-typing', (username) => {
@@ -73,6 +88,7 @@
 		  	methods: {
 		  		createUser() {
 		  			this.logged_in = true;
+		  			socket.emit('user-created', this.username);
 		  		},
 
 		  		sendMessage() {

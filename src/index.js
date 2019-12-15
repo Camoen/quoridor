@@ -14,9 +14,27 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/client/html/index.html')
 });
 
+var usernames = {};
+function mapToArray(usernames){
+	var usernameArray = [];
+	for (var key in usernames){
+		usernameArray.push(key);
+		// console.log( key, usernames[key] );
+	}
+	return usernameArray;
+}
+
 socketio.on('connection', function(socket){
 	console.log('a user connected');
+	socket.on('user-created', (username)=>{
+		socket.username = username;
+		usernames[username] = username;
+		
+		socketio.emit('update-user-list', mapToArray(usernames));
+	});
 	socket.on('disconnect', function(){
+		delete usernames[socket.username];
+		socketio.emit('update-user-list', mapToArray(usernames));
 		console.log('user disconnected');
 	});
 	socket.on('chat-message', function(msg){

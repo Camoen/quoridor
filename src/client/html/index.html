@@ -7,13 +7,20 @@
 <body>
 	<div id="app">
 		<div v-if="logged_in" v-cloak>
-			<ul v-for="message in message_history">
-				<span>{{message.user}}: {{message.message}}</span>
+			<h3>Select a room:</h3>
+			<ul v-for="room in roomList">
+				<button v-on:click="switchRoom(room)">{{room}}</button>
 			</ul>
-			<form @submit.prevent="sendMessage">
-				<input id="message_input" autocomplete="off" v-model="message" v-on:keyup="setUserTyping" v-on:keyup.Enter="clearUserTyping" /><button>Send</button>
-			</form>
-			<span v-show="someoneIsTyping">{{typingUser}} is typing.</span>
+
+			<div v-if="room_selected" v-cloak>
+				<ul v-for="message in message_history">
+					<span>{{message.user}}: {{message.message}}</span>
+				</ul>
+				<form @submit.prevent="sendMessage">
+					<input id="message_input" autocomplete="off" v-model="message" v-on:keyup="setUserTyping" v-on:keyup.Enter="clearUserTyping" /><button>Send</button>
+				</form>
+				<span v-show="someoneIsTyping">{{typingUser}} is typing.</span>
+			</div>
 
 			<div>
 				<h3>Online Users:</h3>
@@ -50,7 +57,10 @@
 				logged_in: false,
 				userIsTyping: false,
 				userList: [],
-				timeout: undefined
+				timeout: undefined,
+				room_selected: false,
+				roomList: [],
+				room_name: null
 		  	},
 
 		  	created()  {
@@ -77,6 +87,10 @@
 		  				this.someoneIsTyping = false;
 		  			}
 				});
+
+				socket.on('update-room-list', (rooms) => {
+					this.roomList = rooms;
+				});
 		  	},
 
 		  	// watch: {
@@ -94,7 +108,8 @@
 		  		sendMessage() {
 					socket.emit('chat-message', {
 						message: this.message,
-						user: this.username
+						user: this.username,
+						room: this.room_name
 					});
 					this.message = "";
 					this.clearUserTyping();
@@ -104,7 +119,10 @@
 		  			if (!this.userIsTyping){
 		  				this.userIsTyping = true;
 		  				console.log("userisTyping is true");
-		  				socket.emit('user-typing', this.username);
+		  				socket.emit('user-typing', {
+		  					user: this.username,
+		  					room: this.room_name
+		  				});
 		  				this.timeout = setTimeout(this.clearUserTyping, 4000);
 		  			} else {
 		  				console.log("userisTyping is still true");
@@ -116,7 +134,17 @@
 		  		clearUserTyping() {
 		  			this.userIsTyping = false;
 		  			console.log("userisTyping is false");
-		  			socket.emit('stop-typing', this.username);
+		  			socket.emit('stop-typing', {
+	  					user: this.username,
+	  					room: this.room_name
+	  				});
+		  		},
+
+		  		switchRoom(room){
+		  			console.log(room);
+		  			this.room_name = room;
+		  			this.room_selected = true;
+		  			socket.emit('join-room', room);
 		  		}
 		  	}
 		});

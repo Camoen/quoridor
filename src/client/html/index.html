@@ -66,7 +66,7 @@
 				room_selected: false,
 				roomList: [],
 				room_name: null,
-				newRoom: null,
+				newRoom: "",
 				createdRoom: false
 		  	},
 
@@ -112,7 +112,9 @@
 		  		},
 
 		  		createRoom() {
-		  			socket.emit('room-created', this.newRoom);
+		  			if (this.newRoom != ""){
+		  				socket.emit('room-created', this.newRoom);
+		  			}
 		  		},
 
 		  		sendMessage() {

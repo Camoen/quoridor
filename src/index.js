@@ -14,7 +14,7 @@ app.get('/', function(req, res){
 });
 
 var usernames = {};
-var rooms = ["Room 1", "Room 2", "Room 3"];
+var rooms = [];
 function mapToArray(inputMap){
 	var resultArray = [];
 	for (var key in inputMap){
@@ -24,20 +24,20 @@ function mapToArray(inputMap){
 	return resultArray;
 }
 
-// function deleteEmptyRoom(socketio, socket){
-// 	// If room is now empty, remove it
-// 	if (socketio.sockets.adapter.rooms[socket.room] == undefined){
-// 		console.log(socket.room + " is empty.");
-// 		for (i = 0; i < rooms.length; i++){
-// 			console.log(rooms[i]);
-// 		}
-// 		rooms.splice(rooms.indexOf(socket.room), 1);
-// 		for (i = 0; i < rooms.length; i++){
-// 			console.log(rooms[i]);
-// 		}
-// 	// 	socketio.emit('update-room-list', rooms);
-// 	}
-// }
+function deleteEmptyRoom(socketio, socket){
+	// If room is now empty, remove it
+	if (socketio.sockets.adapter.rooms[socket.room] == undefined){
+		console.log(socket.room + " is empty.");
+		for (i = 0; i < rooms.length; i++){
+			console.log(rooms[i]);
+		}
+		rooms.splice(rooms.indexOf(socket.room), 1);
+		for (i = 0; i < rooms.length; i++){
+			console.log(rooms[i]);
+		}
+		socketio.emit('update-room-list', rooms);
+	}
+}
 
 socketio.on('connection', function(socket){
 	console.log('a user connected');
@@ -54,15 +54,22 @@ socketio.on('connection', function(socket){
 	});
 
 	socket.on('disconnect', function(){
-		socketio.emit('chat-message', {
-			message: socket.username + " has disconnected.",
-			user: "System"
-		});
+		// If someone hasn't chosen a name, disconnect message shouldn't be shown
+		if (socket.username){
+			socketio.emit('chat-message', {
+				message: socket.username + " has disconnected.",
+				user: "System"
+			});
+		}
+		
 		delete usernames[socket.username];
 		socketio.emit('update-user-list', mapToArray(usernames));
 		console.log('user disconnected');
 
-		// deleteEmptyRoom(socketio, socket);
+		// If disconnected user was in a room, check to delete empty room
+		if (socket.room){
+			deleteEmptyRoom(socketio, socket);
+		}
 	});
 	socket.on('chat-message', function(msg){
 		console.log('message: ' + msg);
@@ -84,6 +91,9 @@ socketio.on('connection', function(socket){
 			});
 			console.log(socket.username + " leaving " + socket.room);
 			socket.leave(socket.room);
+
+			// If room is now empty, delete it
+			deleteEmptyRoom(socketio, socket);
 		}
 		socket.room = room;
 		socket.join(room);

@@ -54,7 +54,7 @@
 
 			// our data
 			data: {
-				message: null,
+				message: "",
 				message_history: [],
 				username: null,
 				typingUser: null,
@@ -113,16 +113,17 @@
 
 		  		createRoom() {
 		  			socket.emit('room-created', this.newRoom);
-		  			this.newRoom = "";
 		  		},
 
 		  		sendMessage() {
-					socket.emit('chat-message', {
-						message: this.message,
-						user: this.username,
-						room: this.room_name
-					});
-					this.message = "";
+		  			if (this.message != ""){
+		  				socket.emit('chat-message', {
+							message: this.message,
+							user: this.username,
+							room: this.room_name
+						});
+						this.message = "";
+		  			}
 					this.clearUserTyping();
 		  		},
 
@@ -154,6 +155,12 @@
 
 		  		switchRoom(room){
 		  			if (this.room_name != room){
+		  				// Allow user to create another room after leaving custom room
+		  				if (this.room_name == this.newRoom){
+		  					this.createdRoom = false;
+		  					this.newRoom = "";
+		  				}
+
 		  				console.log(room);
 			  			this.room_name = room;
 			  			this.room_selected = true;

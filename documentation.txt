@@ -21,5 +21,9 @@ Sources:
 4. https://medium.com/js-dojo/build-a-real-time-chat-app-with-vuejs-socket-io-and-nodejs-714c8eefa54e
 
 5. http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/
+http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/
 
-6. https://www.codementor.io/@codementorteam/socketio-player-matchmaking-system-pdxz4apty  (unused so far)
+6. https://socket.io/docs/emit-cheatsheet/
+
+Unused (so far):
+https://www.codementor.io/@codementorteam/socketio-player-matchmaking-system-pdxz4apty

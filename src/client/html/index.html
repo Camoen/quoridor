@@ -11,6 +11,11 @@
 			<ul v-for="room in roomList">
 				<button v-on:click="switchRoom(room)">{{room}}</button>
 			</ul>
+			<div v-if="!createdRoom">
+				<form @submit.prevent="createRoom">
+					<input id="message_input" autocomplete="off" v-model="newRoom" /><button>Create Room</button>
+				</form>
+			</div>
 
 			<div v-if="room_selected" v-cloak>
 				<ul v-for="message in message_history">
@@ -60,7 +65,9 @@
 				timeout: undefined,
 				room_selected: false,
 				roomList: [],
-				room_name: null
+				room_name: null,
+				newRoom: null,
+				createdRoom: false
 		  	},
 
 		  	created()  {
@@ -91,18 +98,22 @@
 				socket.on('update-room-list', (rooms) => {
 					this.roomList = rooms;
 				});
-		  	},
 
-		  	// watch: {
-		  	// 	message(value) {
-		  	// 		value ? socket.emit('user-typing', this.username) : socket.emit('stop-typing', this.username)
-		  	// 	}
-		  	// },
+				socket.on('room-created', (newRoom) =>{
+					this.createdRoom = true;
+					this.switchRoom(newRoom);
+				});
+		  	},
 
 		  	methods: {
 		  		createUser() {
 		  			this.logged_in = true;
 		  			socket.emit('user-created', this.username);
+		  		},
+
+		  		createRoom() {
+		  			socket.emit('room-created', this.newRoom);
+		  			this.newRoom = "";
 		  		},
 
 		  		sendMessage() {
@@ -138,13 +149,16 @@
 	  					user: this.username,
 	  					room: this.room_name
 	  				});
+	  				clearTimeout(this.timeout);
 		  		},
 
 		  		switchRoom(room){
-		  			console.log(room);
-		  			this.room_name = room;
-		  			this.room_selected = true;
-		  			socket.emit('join-room', room);
+		  			if (this.room_name != room){
+		  				console.log(room);
+			  			this.room_name = room;
+			  			this.room_selected = true;
+			  			socket.emit('join-room', room);
+		  			}
 		  		}
 		  	}
 		});

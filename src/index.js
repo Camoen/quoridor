@@ -5,7 +5,7 @@ var config = require('config');
 var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
-var socketio = require('socket.io')(http);
+var io = require('socket.io')(http);
 var path = require('path')
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -24,68 +24,62 @@ function mapToArray(inputMap){
 	return resultArray;
 }
 
-function deleteEmptyRoom(socketio, socket){
+function deleteEmptyRoom(io, socket){
 	// If room is now empty, remove it
-	if (socketio.sockets.adapter.rooms[socket.room] == undefined){
+	if (io.sockets.adapter.rooms[socket.room] == undefined){
 		console.log(socket.room + " is empty.");
-		for (i = 0; i < rooms.length; i++){
-			console.log(rooms[i]);
-		}
 		rooms.splice(rooms.indexOf(socket.room), 1);
-		for (i = 0; i < rooms.length; i++){
-			console.log(rooms[i]);
-		}
-		socketio.emit('update-room-list', rooms);
+		io.emit('update-room-list', rooms);
 	}
 }
 
-socketio.on('connection', function(socket){
+io.on('connection', function(socket){
 	console.log('a user connected');
 	socket.on('user-created', (username)=>{
 		socket.username = username;
 		usernames[username] = username;
-		socketio.to(socket.id).emit('update-room-list', rooms);
-		socketio.emit('update-user-list', mapToArray(usernames));
+		io.to(socket.id).emit('update-room-list', rooms);
+		io.emit('update-user-list', mapToArray(usernames));
 	});
 	socket.on('room-created', (newRoom)=>{
 		rooms.push(newRoom);
-		socketio.emit('update-room-list', rooms);
-		socketio.to(socket.id).emit('room-created', newRoom);
+		io.emit('update-room-list', rooms);
+		io.to(socket.id).emit('room-created', newRoom);
 	});
 
 	socket.on('disconnect', function(){
 		// If someone hasn't chosen a name, disconnect message shouldn't be shown
 		if (socket.username){
-			socketio.emit('chat-message', {
+			io.emit('chat-message', {
 				message: socket.username + " has disconnected.",
 				user: "System"
 			});
 		}
 		
 		delete usernames[socket.username];
-		socketio.emit('update-user-list', mapToArray(usernames));
+		io.emit('update-user-list', mapToArray(usernames));
 		console.log('user disconnected');
 
 		// If disconnected user was in a room, check to delete empty room
 		if (socket.room){
-			deleteEmptyRoom(socketio, socket);
+			deleteEmptyRoom(io, socket);
 		}
 	});
 	socket.on('chat-message', function(msg){
 		console.log('message: ' + msg);
-		socketio.to(msg.room).emit('chat-message', msg);
+		io.to(msg.room).emit('chat-message', msg);
 	});
 	socket.on('user-typing', function(userTyping){
 		console.log(userTyping.user + " is typing");
-		socketio.to(userTyping.room).emit('user-typing', userTyping.user);
+		socket.to(userTyping.room).emit('user-typing', userTyping.user);
 	});
 	socket.on('stop-typing', function(stopTyping){
 		console.log(stopTyping.user + " stopped typing");
-		socketio.to(stopTyping.room).emit('stop-typing', stopTyping.user);
+		socket.to(stopTyping.room).emit('stop-typing', stopTyping.user);
 	});
 	socket.on('join-room', (room)=>{
 		if (socket.room){
-			socketio.to(socket.room).emit('chat-message', {
+			io.to(socket.room).emit('chat-message', {
 				message: socket.username + " has left " + socket.room + ".",
 				user: "System"
 			});
@@ -93,11 +87,11 @@ socketio.on('connection', function(socket){
 			socket.leave(socket.room);
 
 			// If room is now empty, delete it
-			deleteEmptyRoom(socketio, socket);
+			deleteEmptyRoom(io, socket);
 		}
 		socket.room = room;
 		socket.join(room);
-		socketio.to(room).emit('chat-message', {
+		io.to(room).emit('chat-message', {
 			message: socket.username + " has joined " + room + ".",
 			user: "System"
 		});

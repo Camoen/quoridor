@@ -85,21 +85,49 @@
 			// methods: {}
 	  // 	});
 
-	  let quoridorGame = Vue.component('quoridor-game', {
-      template : `
-      		<div>
-      			{{username}}
-      			<br>
-      			<canvas width="300" height="300" style="border:1px solid" @click="emitClicked('zimzambop')"></canvas>
-  			</div>
-  		`,
-      props: ['username'],
-      methods: {
-      	emitClicked(data){
-      		this.$emit('item-clicked',data);
-      		console.log("zimzambop");
-      	}
-      }
+		let quoridorGame = Vue.component('quoridor-game', {
+		template : `
+			<canvas v-bind:height="height" v-bind:width="width" style="border:1px solid" @click="emitClicked('zimzambop')"></canvas>
+			`,
+	    data: function  () {
+			return {
+				height: 400,
+				width: 400,
+				cellPadding: 10
+			}
+	  	},
+		props: ['username'],
+		mounted: function(){
+			this.renderGame(this.$el.getContext("2d"));
+		},
+		methods: {
+			emitClicked(data){
+				// this.$emit('item-clicked',data);
+				this.renderReaction(this.$el.getContext("2d"));
+				console.log("zimzambop");
+			},
+			renderReaction(context){
+				context.font = "30px Arial";
+				context.fillText("OUCH", 10, 50);
+			},
+			drawBoard(context){
+				let p = this.cellPadding;
+			    for (var x = 0; x <= this.width; x += 40) {
+		        	context.moveTo(0.5 + x + p, p);
+			        context.lineTo(0.5 + x + p, this.height + p);
+			    }
+
+			    for (var x = 0; x <= this.height; x += 40) {
+			        context.moveTo(p, 0.5 + x + p);
+			        context.lineTo(this.width + p, 0.5 + x + p);
+			    }
+			    context.strokeStyle = "green";
+			    context.stroke();
+			},
+			renderGame(context){
+				this.drawBoard(context);
+			}
+		}
 
       });
 

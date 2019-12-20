@@ -5,7 +5,13 @@
 	<title>Quoridor Chat Client</title>
 </head>
 <body>
+<!-- 	<div id="game">
+		{{message}}
+		<canvas id="game-canvas" width="300" height="300" style="border:1px solid" v></canvas>
+	</div> -->
 	<div id="app">
+		<quoridor-game v-bind:username="username" v-on:item-clicked="setGameState"></quoridor-game>
+
 		<div v-if="logged_in" v-cloak>
 			<h3>Select a room:</h3>
 			<ul v-for="room in roomList">
@@ -49,6 +55,54 @@
 	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 	<script>
 		var socket = io();
+
+		// const game = new Vue({
+		// 	el: '#game',
+
+		// 	data: {
+		// 		message: "gamecanvas",
+		// 	},
+		// 	directives : {
+
+		// 	},
+
+		// 	created() {},
+		// 	methods: {}
+	 //  	});
+
+	  // 	let quoridorGame = Vue.component( 'quoridor-game', {
+	  // 		template : '<span>{{gameMessage}}</span>'
+			// data: function  () {
+			// 	return {
+			// 		gameMessage: "gamecanvas"
+			// 	}
+			// },
+			// directives : {
+
+			// },
+
+			// created() {},
+			// methods: {}
+	  // 	});
+
+	  let quoridorGame = Vue.component('quoridor-game', {
+      template : `
+      		<div>
+      			{{username}}
+      			<br>
+      			<canvas width="300" height="300" style="border:1px solid" @click="emitClicked('zimzambop')"></canvas>
+  			</div>
+  		`,
+      props: ['username'],
+      methods: {
+      	emitClicked(data){
+      		this.$emit('item-clicked',data);
+      		console.log("zimzambop");
+      	}
+      }
+
+      });
+
 		const app = new Vue({
 			el: '#app',
 
@@ -195,6 +249,10 @@
 			  			this.room_selected = true;
 			  			socket.emit('join-room', room);
 		  			}
+		  		},
+
+		  		setGameState(data){
+		  			alert(data);
 		  		}
 		  	}
 		});

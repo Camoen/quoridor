@@ -25,5 +25,11 @@ http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/
 
 6. https://socket.io/docs/emit-cheatsheet/
 
+7. https://dev.to/faradayyg/components-in-vuejs-j5g
+
+
 Unused (so far):
 https://www.codementor.io/@codementorteam/socketio-player-matchmaking-system-pdxz4apty
+
+https://stackoverflow.com/questions/56264529/animate-canvas-from-vue
+https://jsfiddle.net/mani04/r4mbh6nu/1/

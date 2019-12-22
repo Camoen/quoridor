@@ -87,45 +87,78 @@
 
 		let quoridorGame = Vue.component('quoridor-game', {
 		template : `
-			<canvas v-bind:height="height" v-bind:width="width" style="border:1px solid" @click="emitClicked('zimzambop')"></canvas>
+		<div>
+			<canvas v-bind:height="height" v-bind:width="width" style="border:1px solid" @click="emitClicked('zimzambop', $event)" ref="quoridorGameCanvas"></canvas>
+			<br>
+			<button v-on:click="startGame">Start Game</button>
+		</div>
 			`,
 	    data: function  () {
 			return {
-				height: 400,
-				width: 400,
-				cellPadding: 10
+				height: 480,
+				width: 480,
+				padding: 40
 			}
 	  	},
 		props: ['username'],
 		mounted: function(){
-			this.renderGame(this.$el.getContext("2d"));
+			// this.renderGame(this.$el.getContext("2d"));
 		},
 		methods: {
-			emitClicked(data){
+			emitClicked(data, event){
 				// this.$emit('item-clicked',data);
-				this.renderReaction(this.$el.getContext("2d"));
+				let canvas = this.$refs.quoridorGameCanvas
+				let context = canvas.getContext("2d");
+				//var context2 = this.$el.getContext("2d");
+				this.renderReaction(context, "OUCH");
 				console.log("zimzambop");
+				let mousePosition = this.getMousePosition(canvas, event);
+				console.log(mousePosition);
 			},
-			renderReaction(context){
+			getMousePosition(canvas, event){
+				var rectangle = this.$refs.quoridorGameCanvas.getBoundingClientRect();
+		        return {
+					x: event.clientX - rectangle.left,
+					y: event.clientY - rectangle.top
+		        };
+			},
+			renderReaction(context, message){
 				context.font = "30px Arial";
-				context.fillText("OUCH", 10, 50);
+				context.fillText(message, 10, 50);
+				context.fillStyle = "green";
 			},
 			drawBoard(context){
-				let p = this.cellPadding;
-			    for (var x = 0; x <= this.width; x += 40) {
-		        	context.moveTo(0.5 + x + p, p);
-			        context.lineTo(0.5 + x + p, this.height + p);
-			    }
+				// 9 rows and columns with padding in between cells
+				// padding = 3/8ths the size of a cell
+				// total = 9 cells + 3 cells of spacing between = 12 by 12
 
-			    for (var x = 0; x <= this.height; x += 40) {
-			        context.moveTo(p, 0.5 + x + p);
-			        context.lineTo(this.width + p, 0.5 + x + p);
-			    }
-			    context.strokeStyle = "green";
+				let p = this.padding;
+				let cellSize = (this.height-p*2)/12;
+				let gapSize = cellSize*0.375;
+
+				let xval = 0;
+				for (var x = 0; x < 8; x++){
+					// Create column and row of cells
+					xval += cellSize;
+					context.moveTo(xval+p, p);
+					context.lineTo(xval+p, this.height - p);
+					context.moveTo(p, xval+p);
+					context.lineTo(this.width - p, xval+p);
+					xval += gapSize;
+					// Create column and row of gaps
+					context.moveTo(xval+p, p);
+					context.lineTo(xval+p, this.height - p);
+					context.moveTo(p, xval+p);
+					context.lineTo(this.width - p, xval+p);
+				}
+			    context.strokeStyle = "brown";
 			    context.stroke();
 			},
 			renderGame(context){
 				this.drawBoard(context);
+			},
+			startGame(){
+				this.renderGame(this.$refs.quoridorGameCanvas.getContext("2d"));
 			}
 		}
 

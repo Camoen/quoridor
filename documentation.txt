@@ -27,6 +27,10 @@ http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/
 
 7. https://dev.to/faradayyg/components-in-vuejs-j5g
 
+8. https://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
+
+9. https://stackoverflow.com/questions/28576966/draw-clickable-grid-of-1-million-squares
+
 
 Unused (so far):
 https://www.codementor.io/@codementorteam/socketio-player-matchmaking-system-pdxz4apty

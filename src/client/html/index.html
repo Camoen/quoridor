@@ -10,8 +10,6 @@
 		<canvas id="game-canvas" width="300" height="300" style="border:1px solid" v></canvas>
 	</div> -->
 	<div id="app">
-		<quoridor-game v-bind:username="username" v-on:item-clicked="setGameState"></quoridor-game>
-
 		<div v-if="logged_in" v-cloak>
 			<h3>Select a room:</h3>
 			<ul v-for="room in roomList">
@@ -24,6 +22,7 @@
 			</div>
 
 			<div v-if="room_selected" v-cloak>
+				<quoridor-game v-bind:username="username" v-on:item-clicked="setGameState" ref="quoridorInstance"></quoridor-game>
 				<ul v-for="message in message_history">
 					<span>{{message.user}}: {{message.message}}</span>
 				</ul>
@@ -105,24 +104,19 @@
 				cellCoords: []
 			}
 	  	},
-		props: ['username'],
+		props: ['username', 'gameData'],
 		mounted: function(){
 			// this.renderGame(this.$el.getContext("2d"));
 		},
 		methods: {
 			emitClicked(data, event){
-				// this.$emit('item-clicked',data);
-				let canvas = this.$refs.quoridorGameCanvas
+				let canvas = this.$refs.quoridorGameCanvas;
 				let context = canvas.getContext("2d");
-				//var context2 = this.$el.getContext("2d");
-				this.renderReaction(context, "OUCH");
-				console.log("zimzambop");
+				// this.renderReaction(context, "OUCH");
 				let mousePosition = this.getMousePosition(canvas, event);
 				console.log(mousePosition);
-				// for (i = 0; i < this.cellCoords.length; i++){
-				// 	console.log(this.cellCoords[i]);
-				// }
-				this.fillSquare(context, mousePosition);
+				this.fillSquare(mousePosition);
+				this.$emit('item-clicked',mousePosition);
 			},
 			getMousePosition(canvas, event){
 				var rectangle = this.$refs.quoridorGameCanvas.getBoundingClientRect();
@@ -131,9 +125,10 @@
 					y: event.clientY - rectangle.top
 		        };
 			},
-			fillSquare(context, mousePosition){
+			fillSquare(mousePosition){
 				var rect = this.getRectangleCoordinates(mousePosition);
 				console.log(rect);
+				var context = this.$refs.quoridorGameCanvas.getContext("2d");
 				if (this.checkValidPosition(rect)){
 					context.fillRect(rect.x1, rect.y1, rect.x2-rect.x1, rect.y2-rect.y1);
 					context.fillStyle = "green";
@@ -192,7 +187,6 @@
 					context.moveTo(p, xval);
 					context.lineTo(this.width - p, xval);
 					this.cellCoords.push(xval);
-					console.log(xval);
 					xval += gapSize;
 					// Create column and row of gaps
 					context.moveTo(xval, p);
@@ -200,7 +194,6 @@
 					context.moveTo(p, xval);
 					context.lineTo(this.width - p, xval);
 					this.cellCoords.push(xval);
-					console.log(xval);
 					xval -= p;
 				}
 				this.cellCoords.push(this.width-p);
@@ -225,6 +218,7 @@
 
 			// our data
 			data: {
+				// bus: new Vue(),
 				message: "",
 				message_history: [],
 				username: null,
@@ -277,6 +271,12 @@
 				socket.on('room-created', (newRoom) =>{
 					this.createdRoom = true;
 					this.switchRoom(newRoom);
+				});
+
+				// Game socket responses
+				socket.on('square-filled', (data) => {
+					console.log("square filled: " + data.x + " " + data.y);
+					this.$refs.quoridorInstance.fillSquare(data);
 				});
 		  	},
 
@@ -369,7 +369,7 @@
 		  		},
 
 		  		setGameState(data){
-		  			alert(data);
+		  			socket.emit('square-filled', data);
 		  		}
 		  	}
 		});

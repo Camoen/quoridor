@@ -88,16 +88,21 @@
 		let quoridorGame = Vue.component('quoridor-game', {
 		template : `
 		<div>
-			<canvas v-bind:height="height" v-bind:width="width" style="border:1px solid" @click="emitClicked('zimzambop', $event)" ref="quoridorGameCanvas"></canvas>
+			<canvas v-bind:height="height" v-bind:width="width" style="border:1px solid brown" @click="emitClicked('zimzambop', $event)" ref="quoridorGameCanvas" v-if="!gameHidden"></canvas>
 			<br>
-			<button v-on:click="startGame">Start Game</button>
+			<button v-on:click="startGame" v-if="!gameHidden">Start Game</button>
+			<button v-on:click="hideGame">Show/Hide Game</button>
 		</div>
 			`,
 	    data: function  () {
 			return {
+				gameHidden: false,
 				height: 480,
 				width: 480,
-				padding: 40
+				padding: 20,
+				cellWidth: 0,
+				gapWidth: 0,
+				cellCoords: []
 			}
 	  	},
 		props: ['username'],
@@ -114,6 +119,10 @@
 				console.log("zimzambop");
 				let mousePosition = this.getMousePosition(canvas, event);
 				console.log(mousePosition);
+				// for (i = 0; i < this.cellCoords.length; i++){
+				// 	console.log(this.cellCoords[i]);
+				// }
+				this.fillSquare(context, mousePosition);
 			},
 			getMousePosition(canvas, event){
 				var rectangle = this.$refs.quoridorGameCanvas.getBoundingClientRect();
@@ -121,6 +130,40 @@
 					x: event.clientX - rectangle.left,
 					y: event.clientY - rectangle.top
 		        };
+			},
+			fillSquare(context, mousePosition){
+				var rect = this.getRectangleCoordinates(mousePosition);
+				console.log(rect);
+				if (this.checkValidPosition(rect)){
+					context.fillRect(rect.x1, rect.y1, rect.x2-rect.x1, rect.y2-rect.y1);
+					context.fillStyle = "green";
+				}
+			},
+			getRectangleCoordinates(mousePosition){
+				let x1 = -1, x2 = -1, y1 = -1, y2 = -1;
+				for (i = 0; i < this.cellCoords.length; i++){
+					if (x1 >= 0 && y1 >= 0) break;
+					if (this.cellCoords[i] > mousePosition.x && x2 < 0){
+						x1 = i-1;
+						x2 = i;
+					}
+					if (this.cellCoords[i] > mousePosition.y && y2 < 0){
+						y1 = i-1;
+						y2 = i;
+					}
+				}
+				return {
+					x1: this.cellCoords[x1],
+					x2: this.cellCoords[x2],
+					y1: this.cellCoords[y1],
+					y2: this.cellCoords[y2]
+				}
+			},
+			checkValidPosition(rectangleCoordinates){
+				return  rectangleCoordinates.x1 != -1 &&
+						rectangleCoordinates.x2 != -1 &&
+						rectangleCoordinates.y1 != -1 &&
+						rectangleCoordinates.y2 != -1;
 			},
 			renderReaction(context, message){
 				context.font = "30px Arial";
@@ -135,22 +178,32 @@
 				let p = this.padding;
 				let cellSize = (this.height-p*2)/12;
 				let gapSize = cellSize*0.375;
+				this.cellWidth = cellSize;
+				this.gapWidth = gapSize;
+				this.cellCoords.push(p);
 
 				let xval = 0;
 				for (var x = 0; x < 8; x++){
 					// Create column and row of cells
 					xval += cellSize;
-					context.moveTo(xval+p, p);
-					context.lineTo(xval+p, this.height - p);
-					context.moveTo(p, xval+p);
-					context.lineTo(this.width - p, xval+p);
+					xval += p;
+					context.moveTo(xval, p);
+					context.lineTo(xval, this.height - p);
+					context.moveTo(p, xval);
+					context.lineTo(this.width - p, xval);
+					this.cellCoords.push(xval);
+					console.log(xval);
 					xval += gapSize;
 					// Create column and row of gaps
-					context.moveTo(xval+p, p);
-					context.lineTo(xval+p, this.height - p);
-					context.moveTo(p, xval+p);
-					context.lineTo(this.width - p, xval+p);
+					context.moveTo(xval, p);
+					context.lineTo(xval, this.height - p);
+					context.moveTo(p, xval);
+					context.lineTo(this.width - p, xval);
+					this.cellCoords.push(xval);
+					console.log(xval);
+					xval -= p;
 				}
+				this.cellCoords.push(this.width-p);
 			    context.strokeStyle = "brown";
 			    context.stroke();
 			},
@@ -159,6 +212,9 @@
 			},
 			startGame(){
 				this.renderGame(this.$refs.quoridorGameCanvas.getContext("2d"));
+			},
+			hideGame(){
+				this.gameHidden = !this.gameHidden;
 			}
 		}
 
